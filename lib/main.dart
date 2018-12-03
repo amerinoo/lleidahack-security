@@ -45,21 +45,28 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future scan() async {
-    String barcode = await QRCodeReader().scan();
-//    barcode = 'Y6wuVqHYpBX2W6rp9CxK';
-    Firestore.instance
-        .collection('events')
-        .document(barcode)
-        .setData({'id': barcode});
+    String qrData = await QRCodeReader().scan();
+    var toShow;
+//    qrData = 'Y6wuVqHYpBX2W6rp9CxK';
     var snapshot = await Firestore.instance
         .collection('participants')
-        .document(barcode)
+        .document(qrData)
         .get();
 
-    barcode = (snapshot.exists)
-        ? snapshot.data.toString()
-        : "El participant $barcode no existeix!!";
+    if (snapshot.exists) {
+      Firestore.instance
+          .collection('events')
+          .document(qrData)
+          .setData({'id': qrData});
+      toShow = snapshot.data.toString();
+    } else {
+      Firestore.instance
+          .collection('fails')
+          .document(qrData)
+          .setData({'id': qrData});
+      toShow = "El participant $qrData no existeix!!";
+    }
 
-    setState(() => this.barcode = barcode);
+    setState(() => this.barcode = toShow);
   }
 }
